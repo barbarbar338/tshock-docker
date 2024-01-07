@@ -5,8 +5,8 @@ name: check
 on:
     schedule:
         - cron:  "30 5 * * *"
-
-    workflow_dispatch:
+    push:
+        branches: [main]
 
 jobs:
     check:

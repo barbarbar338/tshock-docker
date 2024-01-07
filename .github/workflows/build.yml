@@ -7,8 +7,6 @@ on:
         workflows: ["check"]
         types: [completed]
 
-    workflow_dispatch:
-
 jobs:
     check:
         runs-on: ubuntu-latest
