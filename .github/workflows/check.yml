@@ -14,4 +14,4 @@ jobs:
         steps:
         - name: Checkout
           uses: actions/checkout@v4
-        - run: exit $(curl -s https://api.github.com/repos/Pryaxis/Tshock/commits/heads/general-devel | jq -r "((now - (.commit.author.date | fromdateiso8601) )  / (60*60*24)  | trunc)")
+        - run: ./checkCommit.sh
