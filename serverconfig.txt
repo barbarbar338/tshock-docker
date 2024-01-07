@@ -1,0 +1,7 @@
+world=/worlds/example.wld
+worldpath=/worlds
+motd=TShock on Docker!
+port=7777
+worldname=example
+diffculty=0
+autocreate=1
