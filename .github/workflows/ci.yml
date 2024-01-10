@@ -10,6 +10,8 @@ jobs:
   check-commit-date:
     name: Check Last Commit Date
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '(skip)') }}
+
 
     outputs:
       can_build: ${{ steps.can_build.outputs.can_build }}
@@ -34,7 +36,7 @@ jobs:
   #  name: Cancel Build Process
   #  needs: check-commit-date
   #  runs-on: ubuntu-latest
-  #  if: ${{ needs.check-commit-date.outputs.can_build == 'false'}}
+  #  if: ${{ contains(github.event.head_commit.message, '(skip)') || needs.check-commit-date.outputs.can_build == 'false'}}
 
   #  steps:
   #      - name: Cancel Workflow
@@ -44,7 +46,7 @@ jobs:
     name: Build & Push Image
     needs: check-commit-date
     runs-on: ubuntu-latest
-    if: ${{ needs.check-commit-date.outputs.can_build == 'true'}}
+    if: ${{ !contains(github.event.head_commit.message, '(skip)') && needs.check-commit-date.outputs.can_build == 'true'}}
 
     steps:
         - name: Checkout Repo

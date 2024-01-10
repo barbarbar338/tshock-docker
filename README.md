@@ -1,6 +1,6 @@
 # 🐋☕️⚡️ Docker image for TShock
 - Self-updating TShock Docker image.
-- Get's the latest version of TShock and installs it.
+- Gets the latest version of TShock and installs it.
 
 # 🤓 Usage
 - Download the [`docker-compose.yml`](https://raw.githubusercontent.com/barbarbar338/tshock-docker/main/dockerfile-compose.yml) file.
