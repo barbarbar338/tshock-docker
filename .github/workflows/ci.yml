@@ -17,7 +17,7 @@ jobs:
               run: |
                 repoURL="https://api.github.com/repos/Pryaxis/Tshock/commits/heads/general-devel"
                 commitDate=$(curl -s $repoURL | jq -r ".commit.author.date" | xargs -I{} date -d {} +%s)
-                echo "date=$commitDate" >> $GITHUB_STATE"
+                echo "date=$commitDate" >> $GITHUB_STATE
 
     cancel-process:
         name: Cancel Build Process
