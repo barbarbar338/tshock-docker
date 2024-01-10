@@ -1,4 +1,4 @@
-name: Check Last Commit & Build
+name: Fetch Last Commit & Build/Push Image
 
 on:
   schedule:
@@ -15,7 +15,7 @@ jobs:
       can_build: ${{ steps.can_build.outputs.can_build }}
 
     steps:
-      - name: Get Latest Commit Date
+      - name: Get Last Commit Date & Set Output
         id: can_build
         run: |
           repoURL="https://api.github.com/repos/Pryaxis/Tshock/commits/heads/general-devel"
@@ -28,15 +28,17 @@ jobs:
           fi
         shell: bash
 
-  cancel-process:
-    name: Cancel Build Process
-    needs: check-commit-date
-    runs-on: ubuntu-latest
-    if: ${{ needs.check-commit-date.outputs.can_build == 'false'}}
+  # Not needed, but if you want to show a message
+  # When build is cancelled, uncomment these lines.
+  #cancel-process:
+  #  name: Cancel Build Process
+  #  needs: check-commit-date
+  #  runs-on: ubuntu-latest
+  #  if: ${{ needs.check-commit-date.outputs.can_build == 'false'}}
 
-    steps:
-        - name: Cancel Workflow
-          run: echo "Process cancelled because there is no new commit."
+  #  steps:
+  #      - name: Cancel Workflow
+  #        run: echo "Process cancelled because there is no new commit."
 
   build:
     name: Build & Push Image
@@ -67,4 +69,3 @@ jobs:
             platforms: linux/amd64,linux/arm64,linux/arm/v7,windows/amd64
             push: true
             tags: barbarbar338/tshock:buildx-latest
-
