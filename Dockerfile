@@ -5,9 +5,12 @@ FROM --platform=${BUILDPLATFORM} mcr.microsoft.com/dotnet/sdk:6.0 AS builder
 
 ARG TARGETPLATFORM
 
-# Copy build context
+# Install dependencies
+RUN apt-get update && apt-get install -y git
+
+# Clone TShock repository
 WORKDIR /TShock
-COPY ./TShock ./
+RUN git clone --recurse-submodules https://github.com/Pryaxis/TShock.git .
 
 # Build and package release based on target architecture
 RUN dotnet build -v m
