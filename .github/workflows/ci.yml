@@ -17,13 +17,13 @@ jobs:
               run: |
                 repoURL="https://api.github.com/repos/Pryaxis/Tshock/commits/heads/general-devel"
                 commitDate=$(curl -s $repoURL | jq -r ".commit.author.date" | xargs -I{} date -d {} +%s)
-                echo "::set-output name=date::$commitDate"
+                echo "date=$commitDate" >> $GITHUB_STATE"
 
     cancel-process:
         name: Cancel Build Process
         needs: check-commit-date
         runs-on: ubuntu-latest
-        if: ${{ needs.check-commit-date.outputs.date < github.event.before }}
+        if: ${{ needs.commit_date.outputs.date < github.event.before}}
 
         steps:
             - name: Cancel Workflow
@@ -33,7 +33,7 @@ jobs:
         name: Build & Push Image
         needs: check-commit-date
         runs-on: ubuntu-latest
-        if: ${{ needs.check-commit-date.outputs.date >= github.event.before }}
+        if: ${{ needs.commit_date.outputs.date >= github.event.before}}
 
         steps:
             - name: Checkout Repo
