@@ -1,61 +1,70 @@
 name: Check Last Commit & Build
 
 on:
-    schedule:
-        - cron:  "30 5 * * *"
-    push:
-        branches: [main]
+  schedule:
+    - cron:  "30 5 * * *"
+  push:
+    branches: [main]
 
 jobs:
-    check-commit-date:
-        name: Check Last Commit Date
-        runs-on: ubuntu-latest
+  check-commit-date:
+    name: Check Last Commit Date
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Get Latest Commit Date
-              id: commit_date
-              run: |
-                repoURL="https://api.github.com/repos/Pryaxis/Tshock/commits/heads/general-devel"
-                commitDate=$(curl -s $repoURL | jq -r ".commit.author.date" | xargs -I{} date -d {} +%s)
-                echo "date=$commitDate" >> $GITHUB_STATE
+    outputs:
+      can_build: ${{ steps.can_build.outputs.can_build }}
 
-    cancel-process:
-        name: Cancel Build Process
-        needs: check-commit-date
-        runs-on: ubuntu-latest
-        if: ${{ needs.commit_date.outputs.date < github.event.before}}
+    steps:
+      - name: Get Latest Commit Date
+        id: can_build
+        run: |
+          repoURL="https://api.github.com/repos/Pryaxis/Tshock/commits/heads/general-devel"
+          commitDate=$(curl -s $repoURL | jq -r ".commit.author.date" | xargs -I{} date -d {} +%s)
+          today=$(date +%s)
+          if [ $((today - commitDate)) -lt 86400 ]; then
+            echo "can_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "can_build=false" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
 
-        steps:
-            - name: Cancel Workflow
-              run: echo "Process cancelled because there is no new commit."
+  cancel-process:
+    name: Cancel Build Process
+    needs: check-commit-date
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-commit-date.outputs.can_build == 'false'}}
 
-    build:
-        name: Build & Push Image
-        needs: check-commit-date
-        runs-on: ubuntu-latest
-        if: ${{ needs.commit_date.outputs.date >= github.event.before}}
+    steps:
+        - name: Cancel Workflow
+          run: echo "Process cancelled because there is no new commit."
 
-        steps:
-            - name: Checkout Repo
-              uses: actions/checkout@v4
+  build:
+    name: Build & Push Image
+    needs: check-commit-date
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-commit-date.outputs.can_build == 'true'}}
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+    steps:
+        - name: Checkout Repo
+          uses: actions/checkout@v4
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+        - name: Set up QEMU
+          uses: docker/setup-qemu-action@v3
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                username: ${{ secrets.DOCKERHUB_USERNAME }}
-                password: ${{ secrets.DOCKERHUB_TOKEN }}
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
 
-            - name: Build and push
-              uses: docker/build-push-action@v5
-              with:
-                context: .
-                platforms: linux/amd64,linux/arm64,linux/arm/v7,windows/amd64
-                push: true
-                tags: barbarbar338/tshock:buildx-latest
+        - name: Login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+        - name: Build and push
+          uses: docker/build-push-action@v5
+          with:
+            context: .
+            platforms: linux/amd64,linux/arm64,linux/arm/v7,windows/amd64
+            push: true
+            tags: barbarbar338/tshock:buildx-latest
 
