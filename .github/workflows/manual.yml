@@ -6,9 +6,7 @@ on:
 jobs:
   build:
     name: Build & Push Image
-    needs: check-commit-date
     runs-on: ubuntu-latest
-
     steps:
         - name: Checkout Repo
           uses: actions/checkout@v4
