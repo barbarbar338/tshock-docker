@@ -1,5 +1,8 @@
 name: Manual Build
 
+on:
+  workflow_dispatch:
+
 jobs:
   build:
     name: Build & Push Image
