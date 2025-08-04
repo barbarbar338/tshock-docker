@@ -22,18 +22,13 @@ RUN \
         ;; \
         "linux/arm/v7") export ARCH="linux-arm" \
         ;; \
-        "windows/amd64") export ARCH="win-x64" \
-        ;; \
         *) echo "Error: Unsupported platform ${TARGETPLATFORM}" && exit 1 \
         ;; \
     esac && \
     dotnet publish -o output/ -r "${ARCH}" -v m -f net9.0 -c Release -p:PublishSingleFile=true --self-contained false
 
 # Runtime image
-FROM mcr.microsoft.com/dotnet/runtime:9.0 AS linux_base
-FROM mcr.microsoft.com/dotnet/runtime:9.0-nanoserver-ltsc2022 AS windows_base
-
-FROM ${TARGETOS}_base AS final
+FROM mcr.microsoft.com/dotnet/runtime:9.0 AS final
 
 WORKDIR /server
 COPY --from=builder /TShock/TShockLauncher/output ./
