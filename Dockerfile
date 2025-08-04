@@ -1,9 +1,4 @@
-ARG TARGETPLATFORM=linux/amd64
-ARG BUILDPLATFORM=${TARGETPLATFORM}
-
-FROM --platform=${BUILDPLATFORM} mcr.microsoft.com/dotnet/sdk:6.0 AS builder
-
-ARG TARGETPLATFORM
+FROM --platform=${BUILDPLATFORM} mcr.microsoft.com/dotnet/sdk:9.0 AS builder
 
 # Install dependencies
 RUN apt-get update && apt-get install -y git
@@ -15,6 +10,10 @@ RUN git clone --recurse-submodules https://github.com/Pryaxis/TShock.git .
 # Build and package release based on target architecture
 RUN dotnet build -v m
 WORKDIR /TShock/TShockLauncher
+
+# Make TARGETPLATFORM available to the container.
+ARG TARGETPLATFORM
+
 RUN \ 
     case "${TARGETPLATFORM}" in \
         "linux/amd64") export ARCH="linux-x64" \
@@ -28,10 +27,14 @@ RUN \
         *) echo "Error: Unsupported platform ${TARGETPLATFORM}" && exit 1 \
         ;; \
     esac && \
-    dotnet publish -o output/ -r "${ARCH}" -v m -f net6.0 -c Release -p:PublishSingleFile=true --self-contained false
+    dotnet publish -o output/ -r "${ARCH}" -v m -f net9.0 -c Release -p:PublishSingleFile=true --self-contained false
 
 # Runtime image
-FROM --platform=${TARGETPLATFORM} mcr.microsoft.com/dotnet/runtime:6.0 AS runner
+FROM mcr.microsoft.com/dotnet/runtime:9.0 AS linux_base
+FROM mcr.microsoft.com/dotnet/runtime:9.0-nanoserver-ltsc2022 AS windows_base
+
+FROM ${TARGETOS}_base AS final
+
 WORKDIR /server
 COPY --from=builder /TShock/TShockLauncher/output ./
 
